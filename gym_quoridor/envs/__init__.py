@@ -1,1 +1,0 @@
-from gym_quoridor.envs.quoridor_env import quoridor_env
