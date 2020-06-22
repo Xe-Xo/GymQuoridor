@@ -5,6 +5,7 @@ import sys
 import random
 import copy
 from gym_quoridor.envs.enums import Color, WallDir, MovementDir,MovementIndex, CompassDir, PlayerState, CompassIndex
+import cv2
 
 class QuoridorEnv(gym.Env):
     metadata = {'render.modes':['human']}
@@ -412,8 +413,12 @@ class QuoridorEnv(gym.Env):
 
     def placement_to_action(self,wallpos,walldir):
         #Action is a Discrete!
-        #First 4 is movement Second 8 is Jump Movements, remaining self.height-1 x self.width-1 = Wallpos locations
-        return (wallpos[1] * self.array_width-1 + wallpos[0])*walldir + 12
+        #First 4 is movement Second 8 is Jump Movements, remaining self.height-1 x self.width-1 x 2 (2 possible directions) = Wallpos locations 
+
+        wall_width = self.array_width - 1
+        wall_height = self.array_height - 1
+
+        return (wallpos[1] * wall_width + wallpos[0])+((walldir-1)*wall_width*wall_height) + 12
 
     def movement_to_action(self,startpos,endpos):
         sx,sy = startpos
@@ -428,7 +433,20 @@ class QuoridorEnv(gym.Env):
         if action < 12:
             return MovementDir[MovementIndex(action).name].value, None
         else:
-            return None, ((action-12) % (self.array_width-1), (action-12-((action-12) % (self.array_width-1)))//(self.array_width-1))
+
+            wall_width = self.array_width - 1
+            wall_height = self.array_height - 1
+            total_walls = wall_width * wall_height
+
+            actionint = action - 12
+            actionmod = actionint % total_walls
+            walldir = actionint // total_walls
+            x, y = actionmod % wall_width, actionmod // wall_width
+
+            return None,(x,y,walldir+1)
+
+
+
 
 
 class GridNode():
