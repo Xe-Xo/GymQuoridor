@@ -49,10 +49,20 @@ if __name__ == "__main__":
     #print(env.no_maze(env._get_game_state()))
     #print(env.path_len_dif(env._get_game_state()))
     #print("------")
+    print(f"Path:{env.current_path(env._get_game_state(),1)}")
+    print(f"Path:{env.current_path(env._get_game_state(),2)}")
     print(env._blocked_exit_wall(env._get_game_state(),(1,2),WallDir.VERTICAL.value))
+    print("-----")
     env.walls[2][1] = WallDir.VERTICAL.value
-    #print(f"Path:{env.current_path(env._get_game_state(),1)}")
-    #print(f"Path:{env.current_path(env._get_game_state(),2)}")
-    #env.render()
+    print(f"Path:{env.current_path(env._get_game_state(),1)}")
+    print(f"Path:{env.current_path(env._get_game_state(),2)}")
+    env.render()
     #print("--state not copied--")
     #print(env._allowed_movement(env._get_game_state(),(2,3)))
+
+    print(env.placement_to_action((2,3)))
+    posx, posy = env._find_player_pos(env._get_game_state(),1)
+    print(env.movement_to_action((posx,posy),(posx-1,posy-1)))
+
+    for action in range((env.array_width-1) * (env.array_height-1) +12):
+      print(action,env.action_to_movementplacement(action))

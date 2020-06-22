@@ -29,12 +29,29 @@ class MovementDir(TupleEnum):
   DOWN = (0,1)
   LEFT = (-1,0)
   RIGHT = (1,0)
+  UPUP = (0,-2)
+  UPLEFT = (-1,-1)
+  UPRIGHT = (1,-1)
+  DOWNDOWN = (0,2)
+  DOWNLEFT = (-1,1)
+  DOWNRIGHT = (1,1)
+  LEFTLEFT = (-2,0)
+  RIGHTRIGHT = (2,0)
 
 class MovementIndex(IntEnum):
   UP = 0
   DOWN = 1
   LEFT = 2
   RIGHT = 3
+  UPUP = 4
+  UPLEFT = 5
+  UPRIGHT = 6
+  DOWNDOWN = 7
+  DOWNLEFT = 8
+  DOWNRIGHT = 9
+  LEFTLEFT = 10
+  RIGHTRIGHT = 11
+
 
 class CompassDir(TupleEnum):
   NW = (-1,-1)
@@ -54,3 +71,4 @@ class PlayerState(IntEnum):
   NONE = 0
 
 
+  

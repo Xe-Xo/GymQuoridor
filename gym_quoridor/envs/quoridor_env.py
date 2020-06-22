@@ -9,10 +9,9 @@ from gym_quoridor.envs.enums import Color, WallDir, MovementDir,MovementIndex, C
 class QuoridorEnv(gym.Env):
     metadata = {'render.modes':['human']}
     
-
     def __init__(self,seed=None):
-        self.array_height = 5
-        self.array_width = 5
+        self.array_height = 9
+        self.array_width = 9
         self.turn = 1
         self.reset()
         self.player_endpos_list = []
@@ -21,11 +20,10 @@ class QuoridorEnv(gym.Env):
             self.player_endpos_list.append((x,self.array_height-1))
             self.opponent_endpos_list.append((x,0))
 
-
     def step(self,action):
 
-        self.last_board = copy.deepcopy(self.board)
-        self.last_walls = copy.deepcopy(self.walls)
+        
+        #last_state = copy.deepcopy(self.get_game_state())
         
         done = self._is_over()
         state = self._get_game_state()
@@ -72,9 +70,8 @@ class QuoridorEnv(gym.Env):
             except:
                 pass
 
-
     def state_eq(self,state,other):
-        pass
+        return state == other
 
     def _make_blank_board(self):
         boardarray = []
@@ -394,8 +391,8 @@ class QuoridorEnv(gym.Env):
 
     def no_maze(self,state):
         # returns True if there is no path to finish
-        print(self.current_path(state,1))
-        print(self.current_path(state,2))
+        #print(self.current_path(state,1))
+        #print(self.current_path(state,2))
         return self.current_path(state,1) is None or self.current_path(state,2) is None
 
     def _is_over(self,state):
@@ -412,6 +409,27 @@ class QuoridorEnv(gym.Env):
             return len(self.current_path(state,1)) - len(self.current_path(state,2))
         except TypeError:
             return None
+
+    def placement_to_action(self,wallpos,walldir):
+        #Action is a Discrete!
+        #First 4 is movement Second 8 is Jump Movements, remaining self.height-1 x self.width-1 = Wallpos locations
+        return (wallpos[1] * self.array_width-1 + wallpos[0])*walldir + 12
+
+    def movement_to_action(self,startpos,endpos):
+        sx,sy = startpos
+        ex,ey = endpos
+        try:
+            return MovementIndex[MovementDir((ex - sx, ey - sy)).name].value
+        except Exception as e:
+            print(e)
+            return None
+
+    def action_to_movementplacement(self,action):
+        if action < 12:
+            return MovementDir[MovementIndex(action).name].value, None
+        else:
+            return None, ((action-12) % (self.array_width-1), (action-12-((action-12) % (self.array_width-1)))//(self.array_width-1))
+
 
 class GridNode():
     def __init__(self,parent=None,position=None):
