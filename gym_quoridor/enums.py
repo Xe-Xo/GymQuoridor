@@ -7,6 +7,15 @@ class TupleEnum(tuple,Enum):
 class IntEnum(int,Enum):
   pass
 
+class RewardMethod(Enum):
+  """
+  REAL: 0 = game is ongoing, 1 = player won, -1 = game tied or white won"
+  HEURISTIC: if the game is ongoing the reward is the movement steps between player 1 and player 2
+  Otherwise the game has ended and if player 1 has won the reward is +15 and if player 2 has won the reward is -15
+  """
+
+  REAL = 'real'
+  HEURISTIC = 'heauristic'
 
 class Color(TupleEnum):
   GRAY = (100, 100, 100)
@@ -21,8 +30,8 @@ class Color(TupleEnum):
   BLACK = (0, 0, 0)
 
 class WallDir(IntEnum):
-  HORIZONTAL = 1
-  VERTICAL = 2
+  VERTICAL = 1
+  HORIZONTAL = 2
 
 class MovementDir(TupleEnum):
   UP = (0,-1)
