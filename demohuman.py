@@ -6,9 +6,10 @@ parser = argparse.ArgumentParser(description='Demo Quoridor Environment')
 parser.add_argument('--boardsize', type=int, default=9)
 args = parser.parse_args()
 
-quoridor_env = gym.make('gym_quoridor', size=args.boardsize)
+quoridor_env = gym.make('gym_quoridor:quoridor-v0', size=args.boardsize)
 done = False
 while not done:
+  break #to stop infinite loop until human setup
   action = quoridor_env.render(mode="human")
   if action == -1:
     exit()
