@@ -7,17 +7,28 @@ class TupleEnum(tuple,Enum):
 class IntEnum(int,Enum):
   pass
 
+class Player(IntEnum):
+  """
+  BLACK: Player that starts first.
+  WHITE: Player that starts second.
+  """
+  BLACK = 0
+  WHITE = 1
+
 class RewardMethod(Enum):
   """
-  REAL: 0 = game is ongoing, 1 = player won, -1 = game tied or white won"
-  HEURISTIC: if the game is ongoing the reward is the movement steps between player 1 and player 2
+  REAL: 0 = game is ongoing, +15 = Black won, -15 = White won"
+  HEURISTIC: if the game is ongoing the reward is the movement steps between Black and White
   Otherwise the game has ended and if player 1 has won the reward is +15 and if player 2 has won the reward is -15
+  INVALID: Heuristic reward however a -1 reward if action is invalid for current player
   """
 
   REAL = 'real'
-  HEURISTIC = 'heauristic'
+  HEURISTIC = 'heuristic'
+  INVALID = 'invalid'
 
 class Color(TupleEnum):
+
   GRAY = (100, 100, 100)
   WHITE = (255, 255, 255)
   RED = (255, 0, 0)
@@ -30,10 +41,12 @@ class Color(TupleEnum):
   BLACK = (0, 0, 0)
 
 class WallDir(IntEnum):
+
   VERTICAL = 1
   HORIZONTAL = 2
 
 class MovementDir(TupleEnum):
+
   UP = (0,-1)
   DOWN = (0,1)
   LEFT = (-1,0)
@@ -48,6 +61,7 @@ class MovementDir(TupleEnum):
   RIGHTRIGHT = (2,0)
 
 class MovementIndex(IntEnum):
+
   UP = 0
   DOWN = 1
   LEFT = 2
@@ -61,23 +75,18 @@ class MovementIndex(IntEnum):
   LEFTLEFT = 10
   RIGHTRIGHT = 11
 
-
 class CompassDir(TupleEnum):
+
   NW = (-1,-1)
   NE = (0,-1)
   SW = (-1,0)
   SE = (0,0)
 
 class CompassIndex(IntEnum):
+  
   NW = 0
   NE = 1
   SW = 2
   SE = 3
-
-class PlayerState(IntEnum):
-  PLAYER = 1
-  OPPONENT = 2
-  NONE = 0
-
 
   
