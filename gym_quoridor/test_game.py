@@ -4,7 +4,6 @@ import unittest
 import gym
 import numpy as np
 
-
 from gym_quoridor import quoridorvars
 
 class TestGoEnv(unittest.TestCase):
@@ -170,11 +169,7 @@ class TestGoEnv(unittest.TestCase):
     state = self.env.reset()
     for a in range(4):
       pass
-
-
-
-
-
+  
 
 
 if __name__ == '__main__':

@@ -8,7 +8,6 @@ def get_wall_size(state):
   assert state.shape[1] == state.shape[2] #X == Y
   return (state.shape[1]-1, state.shape[2]-1)
 
-
 def get_turn(state):
     """
     Returns who's turn it is (quoridorvars.BLACK/quoridorvars.WHITE)

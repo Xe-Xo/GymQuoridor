@@ -27,6 +27,16 @@ class QuoridorGame():
 
   """Class manages states of the game to output new states"""
 
+  def __str__(state):
+
+    returnstring = "Player Locations\n"
+    returnstring += str(state[0,:,:] + state[1,:,:]*2)
+    returnstring += "\nWallPlacements\n"
+    returnstring += str(state[5,:-1,:-1] + state[7,:-1,:-1] + state[6,:-1,:-1]*2 + state[8,:-1,:-1]*2) +"\n"
+    returnstring += "\nPath\n"
+    returnstring += str(state[quoridorvars.BLACKASTAR_CHNL,:,:]+state[quoridorvars.WHITEASTAR_CHNL,:,:]*2)
+    return returnstring 
+
   @staticmethod
   def get_init_board(size):
 
@@ -83,6 +93,16 @@ class QuoridorGame():
   def get_game_ended(state):
     return QuoridorGame.get_player_pos(state,0) in QuoridorGame.get_player_end_pos(state,0) or QuoridorGame.get_player_pos(state,1) in QuoridorGame.get_player_end_pos(state,1) 
 
+  @staticmethod
+  def get_game_winner(state,p):
+    if QuoridorGame.get_player_pos(state,p) in QuoridorGame.get_player_end_pos(state,p):
+      return 1
+    elif QuoridorGame.get_player_pos(state,1-p) in QuoridorGame.get_player_end_pos(state,1-p):
+      return -1
+    else:
+      return 0
+
+
 #region Next State Methods
 
   @staticmethod
@@ -116,10 +136,14 @@ class QuoridorGame():
     '''
     Check whether movementint translated to board coord is allowed
     '''
+    m,n = state_utils.get_board_size(state)
     o_i, o_j = QuoridorGame.action_to_movement(state,moveaction)
     p = QuoridorGame.get_player_turn(state)
     p_i, p_j = QuoridorGame.get_player_pos(state,p)
-    if state[quoridorvars.BLACKMOVEVALID_CHNL+p,p_i + o_i,p_j + o_j] == 1:
+
+    if p_i + o_i < 0 or p_i + o_i >= m or p_j + o_j < 0 or p_j + o_j >= n:
+      return False, p_i + o_i, p_j + o_j
+    elif state[quoridorvars.BLACKMOVEVALID_CHNL+p,p_i + o_i,p_j + o_j] == 1:
       return True, p_i + o_i, p_j + o_j
     else:
       return False, p_i + o_i, p_j + o_j
@@ -130,6 +154,7 @@ class QuoridorGame():
     '''
     Check whether placementint translated to board coord is allowed
     '''
+    m, n = state_utils.get_wall_size(state)
     i,j,d = QuoridorGame.action_to_placement(state,placementaction)
     p = QuoridorGame.get_player_turn(state)
     if QuoridorGame.get_player_walls(state,p) < 5:
@@ -145,8 +170,8 @@ class QuoridorGame():
   def action_to_movement(state,action):
     if action < 12:
       return quoridorvars.MOVEMENT_DIR[action]
-    else:
-      raise Exception(f"Action is greater than 12?!!?! {action}")
+
+    raise Exception(f"Action is greater than 12?!!?! {action}")
 
   @staticmethod
   def action_to_placement(state,action):
@@ -160,8 +185,16 @@ class QuoridorGame():
       walldir = action // wallspace
       x,y = actionmod % m, actionmod // m
       return x,y,walldir
-    else:
-      raise Exception(f"Action is outside wallactionspace? 12 <= {action} >= 11 + {wallspace * 2} = {11 + wallspace * 2}")
+
+    raise Exception(f"Action is outside wallactionspace? 12 <= {action} >= 11 + {wallspace * 2} = {11 + wallspace * 2}")
+
+  def placement_to_action(state,x,y,walldir):
+    m,n = state_utils.get_wall_size(state)
+    wallspace = m * n
+    return (walldir*wallspace)+(y * m + x) + 12
+
+  def movement_to_action(state,x,y):
+    return quoridorvars.MOVEMENT_DIR.index(quoridorvars.MOVEMENT_DIR((x,y)))
 
 #endregion
 
