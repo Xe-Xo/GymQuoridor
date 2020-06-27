@@ -258,14 +258,5 @@ class TestGoEnv(unittest.TestCase):
             self.assertEqual(walltype2,d)
 
 
-
-
-            
-
-
-          
-
-
-
 if __name__ == '__main__':
   unittest.main()

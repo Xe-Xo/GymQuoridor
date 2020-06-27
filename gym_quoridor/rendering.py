@@ -75,10 +75,6 @@ def draw_walls(grid_x,grid_y,grid_w,grid_h,state,gridoffset):
                     else:
                         draw_rectangle(startx + (cellw * x),starty + (cellh * y),cellw*2,cellh*0.2,colorf=wall_colors[chnloff])
 
-
-
-
-
 def draw_players(grid_x,grid_y,grid_w,grid_h,state,gridoffset):
     _, cells_w, cells_h = state.shape
     startx = grid_x-(grid_w//2)+gridoffset 
@@ -94,11 +90,44 @@ def draw_players(grid_x,grid_y,grid_w,grid_h,state,gridoffset):
     draw_circle(startx + (cellw * wx),starty + (cellh * wy), cells_w,colorf=COLOR_WHITE_PIECE)
     
 
-def draw_potential_h_wall(grid_x,grid_y,grid_w,grid_h,state,gridoffset,colorf=(0,0,0),batch=None):
-    pass
+def draw_potential_walls(grid_x,grid_y,grid_w,grid_h,state,gridoffset):
+    _, cells_w, cells_h = state.shape
+    cellw = (grid_w-(gridoffset))//cells_w
+    cellh = (grid_h-(gridoffset))//cells_h
+    startx = grid_x-(grid_w//2)+gridoffset+cellw//2
+    starty = grid_y-(grid_h//2)+gridoffset+cellh//2
 
-def draw_potential_v_wall(grid_x,grid_y,grid_w,grid_h,state,gridoffset,colorf=(0,0,0),batch=None):
-    pass
+    wall_colors = [(0.5,0.0,0.0),(0.0,0.5,0.0)]
+
+    for chnloff in range(2):
+        chnl = quoridorvars.INVALID_V_WALL_CHNL + chnloff
+        for x in range(cells_w):
+            for y in range(cells_h):
+                if state[chnl,x,y] == 0:
+                    if chnloff == 0:
+                        draw_rectangle(startx + (cellw * x),starty + (cellh * y),cellw*0.2,cellh*2,colorf=wall_colors[chnloff])
+                    else:
+                        draw_rectangle(startx + (cellw * x),starty + (cellh * y),cellw*2,cellh*0.2,colorf=wall_colors[chnloff])
+
+
+def draw_invalid_walls(grid_x,grid_y,grid_w,grid_h,state,gridoffset):
+    _, cells_w, cells_h = state.shape
+    cellw = (grid_w-(gridoffset))//cells_w
+    cellh = (grid_h-(gridoffset))//cells_h
+    startx = grid_x-(grid_w//2)+gridoffset+cellw//2
+    starty = grid_y-(grid_h//2)+gridoffset+cellh//2
+
+    wall_colors = [(0.5,0.0,0.0),(0.0,0.5,0.0)]
+
+    for chnloff in range(2):
+        chnl = quoridorvars.INVALID_V_WALL_CHNL + chnloff
+        for x in range(cells_w):
+            for y in range(cells_h):
+                if state[chnl,x,y] == 1:
+                    if chnloff == 0:
+                        draw_rectangle(startx + (cellw * x),starty + (cellh * y),cellw*0.05,cellh*1.85,colorf=wall_colors[chnloff])
+                    else:
+                        draw_rectangle(startx + (cellw * x),starty + (cellh * y),cellw*2,cellh*0.05,colorf=wall_colors[chnloff])
 
 def draw_potential_move(grid_x,grid_y,grid_w,grid_h,state,gridoffset):
     _, cells_w, cells_h = state.shape

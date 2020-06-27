@@ -258,13 +258,14 @@ class QuoridorGame():
     for coordindex, offset in enumerate([(0,-1),(0,1),(-1,0),(1,0)]):
       o_i, o_j = offset
       c_i, c_j = i + o_i, j+ o_j #wall coords
-      if c_i < 0 or c_i > m or c_j < 0 or c_j > n: #if wall out of range
+      if c_i < 0 or c_i >= m or c_j < 0 or c_j >= n: #if wall out of range
         vwalls[coordindex] = 0
         hwalls[coordindex] = 0
       else:
         vwalls[coordindex] = state[quoridorvars.BLACK_V_WALL_CHNL,c_i,c_j] + state[quoridorvars.WHITE_V_WALL_CHNL,c_i,c_j]
         hwalls[coordindex] = state[quoridorvars.BLACK_H_WALL_CHNL,c_i,c_j] + state[quoridorvars.WHITE_H_WALL_CHNL,c_i,c_j]
-    
+    if i == 5 and j == 5:
+      print(vwalls,hwalls)
     return vwalls, hwalls      
 
   @staticmethod
@@ -282,18 +283,20 @@ class QuoridorGame():
 
     for index in range(len(vwalls)):
 
-      if vwalls[index] == 1 and hwalls[index] == 1:
-        return 1
       if vwalls[index] == 2 or hwalls[index] == 2:
         return 1
 
+      if vwalls[index] == 1 and hwalls[index] == 1:
+        return 1
+
+
       if vwalls[index] == 1: #if wall is vertical
-        if d == 1: #Vertical
+        if d == 0: #Vertical
           if index == 0 or index == 1: #if wall is up or down
             return 1
             
       elif hwalls[index] == 1:
-        if d == 2: #Horizontal
+        if d == 1: #Horizontal
           if index == 2 or index == 3:
             return 1
 
@@ -336,10 +339,11 @@ class QuoridorGame():
     vwalls, hwalls = QuoridorGame.walls_around_pos(state,i,j)
     for index in range(len(vwalls)):
       if vwalls[index] == 1:
+
         if index == 0 or index == 2:
-          movement_allowed[2] == 0
+          movement_allowed[2] = 0
         if index == 1 or index == 3:
-          movement_allowed[3] == 0 
+          movement_allowed[3] = 0 
 
       if hwalls[index] == 1:
         if index == 0 or index == 1:

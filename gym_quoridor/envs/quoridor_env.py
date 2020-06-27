@@ -164,6 +164,8 @@ class QuoridorEnv(gym.Env):
         rendering.draw_path(window_height/2, window_height/2, window_height, window_height, self.state, 50)
         rendering.draw_action_state(window_height/2, window_height/2, window_height, window_height, self.state, 50,self.action_state)
         rendering.draw_walls(window_height/2, window_height/2, window_height, window_height, self.state, 50)
+        if self.action_state == "DEBUG":
+          rendering.draw_invalid_walls(window_height/2, window_height/2, window_height, window_height, self.state, 50)
         batch.draw()
 
       @window.event
@@ -182,7 +184,7 @@ class QuoridorEnv(gym.Env):
             y_coord = round(grid_y / deltah)
             player = QuoridorGame.get_player_turn(self.state)
             dx_coord,dy_coord = QuoridorGame.movement_offset(self.state,x_coord,y_coord,player)
-            print(f"PlayerMovement{dx_coord,dy_coord},{x_coord,y_coord},{QuoridorGame.movement_to_action(self.state,dx_coord,dy_coord)},{QuoridorGame.valid_move(self.state,QuoridorGame.movement_to_action(self.state,dx_coord,dy_coord))}")
+            print(f"PlayerMovement{dx_coord,dy_coord},{x_coord,y_coord},{QuoridorGame.movement_to_action(self.state,dx_coord,dy_coord)},{QuoridorGame.valid_move(self.state,QuoridorGame.movement_to_action(self.state,dx_coord,dy_coord))}",QuoridorGame.movement_around_pos(self.state,x_coord,y_coord),QuoridorGame.walls_around_pos(self.state,x_coord,y_coord))
           #wallplacement
           elif self.action_state == "PLACE_V" or self.action_state == "PLACE_H":
             deltaw = (window_height-50)//self.size
