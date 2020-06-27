@@ -15,11 +15,11 @@ done = False
 tau = 0
 while not done:
 
-    state, reward, done, info = quoridor_env.step(quoridor_env.action_space.sample())
+    state, reward, done, info = quoridor_env.step(12)
     statelist.append(state)
     quoridor_env.render(mode="terminal")
     tau += 1
-    if tau == 100:
+    if tau == 1:
         break
 
 stateint = int(input("View which state?"))

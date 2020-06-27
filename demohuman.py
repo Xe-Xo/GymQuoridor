@@ -11,19 +11,19 @@ done = False
 while not done:
   #break #to stop infinite loop until human setup
   action = quoridor_env.render(mode="human")
+  print(f"RETURNED ACTION! {action}")
   if action == -1:
     exit()
+  elif type(action) == tuple:
+    print(action)
   elif action is None:
     pass
-  elif type(action) is tuple:
-    mousecoords = action
-    print(mousecoords)
   else:
     try:
       _, _, done, _ = quoridor_env.step(action)
     except Exception as e:
-      print(e)
-      continue
+        print(e)
+        break
 
 
 

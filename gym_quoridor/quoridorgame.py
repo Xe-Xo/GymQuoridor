@@ -27,12 +27,15 @@ class QuoridorGame():
 
   """Class manages states of the game to output new states"""
 
+  @staticmethod
   def __str__(state):
 
     returnstring = "Player Locations\n"
     returnstring += str(state[0,:,:] + state[1,:,:]*2)
     returnstring += "\nWallPlacements\n"
-    returnstring += str(state[5,:-1,:-1] + state[7,:-1,:-1] + state[6,:-1,:-1]*2 + state[8,:-1,:-1]*2) +"\n"
+    returnstring += str(state[5,:-1,:-1] + state[7,:-1,:-1]*4 + state[6,:-1,:-1]*2 + state[8,:-1,:-1]*8) +"\n"
+    returnstring += "\nInvalidPlacements\n"
+    returnstring += str(state[9,:-1,:-1] + state[10,:-1,:-1]*2)
     returnstring += "\nPath\n"
     returnstring += str(state[quoridorvars.BLACKASTAR_CHNL,:,:]+state[quoridorvars.WHITEASTAR_CHNL,:,:]*2)
     return returnstring 
@@ -119,12 +122,16 @@ class QuoridorGame():
         state = QuoridorGame.set_player_location(state,i,j,QuoridorGame.get_player_turn(state))
         state = QuoridorGame.set_turn(state)
         state = QuoridorGame.set_info_layers(state)
+      else:
+        print(f"invalid move {action,i,j}")
     elif action >= 12 and action <= 12 + (m-1) * (n-1) * 2:
       valid, i, j, walldir = QuoridorGame.valid_placement(state,action)
       if valid:
         state = QuoridorGame.set_wall_location(state,i,j,walldir,QuoridorGame.get_player_turn(state))
         state = QuoridorGame.set_turn(state)
         state = QuoridorGame.set_info_layers(state)
+      else:
+        print(f"invalid placement {action,i,j,walldir}")
     else:
       raise Exception(f"action int is outside the action space! {action}")
 
@@ -136,6 +143,9 @@ class QuoridorGame():
     '''
     Check whether movementint translated to board coord is allowed
     '''
+    if moveaction is None:
+      return False, None,None
+
     m,n = state_utils.get_board_size(state)
     o_i, o_j = QuoridorGame.action_to_movement(state,moveaction)
     p = QuoridorGame.get_player_turn(state)
@@ -154,11 +164,14 @@ class QuoridorGame():
     '''
     Check whether placementint translated to board coord is allowed
     '''
+    if placementaction is None:
+      return False, None, None, None
+
     m, n = state_utils.get_wall_size(state)
     i,j,d = QuoridorGame.action_to_placement(state,placementaction)
     p = QuoridorGame.get_player_turn(state)
     if QuoridorGame.get_player_walls(state,p) < 5:
-      if state[quoridorvars.INVALID_V_WALL_CHNL+d-1,i,j] == 0:
+      if state[quoridorvars.INVALID_V_WALL_CHNL+d,i,j] == 0:
         return True, i, j, d
       else:
         return False, i, j, d
@@ -168,10 +181,13 @@ class QuoridorGame():
 
   @staticmethod
   def action_to_movement(state,action):
-    if action < 12:
+    
+    if action is None:
+      pass
+    elif action < 12:
       return quoridorvars.MOVEMENT_DIR[action]
-
-    raise Exception(f"Action is greater than 12?!!?! {action}")
+    else:
+      raise Exception(f"Action is greater than 12?!!?! {action}")
 
   @staticmethod
   def action_to_placement(state,action):
@@ -188,13 +204,22 @@ class QuoridorGame():
 
     raise Exception(f"Action is outside wallactionspace? 12 <= {action} >= 11 + {wallspace * 2} = {11 + wallspace * 2}")
 
+  @staticmethod
   def placement_to_action(state,x,y,walldir):
     m,n = state_utils.get_wall_size(state)
     wallspace = m * n
     return (walldir*wallspace)+(y * m + x) + 12
 
+  @staticmethod
   def movement_to_action(state,x,y):
-    return quoridorvars.MOVEMENT_DIR.index(quoridorvars.MOVEMENT_DIR((x,y)))
+    for action,movement in enumerate(quoridorvars.MOVEMENT_DIR):
+      if (x,y) == movement:
+        return action
+
+  @staticmethod
+  def movement_offset(state,x,y,player):
+    px, py = QuoridorGame.get_player_pos(state,player)
+    return x - px, y - py
 
 #endregion
 
@@ -216,7 +241,9 @@ class QuoridorGame():
         hwalls[coordindex] = 0
       else:
         vwalls[coordindex] = state[quoridorvars.BLACK_V_WALL_CHNL,c_i,c_j] + state[quoridorvars.WHITE_V_WALL_CHNL,c_i,c_j]
+        #assert vwalls[coordindex] < 2, f"vertical walls placed on eachother? {state[quoridorvars.BLACK_V_WALL_CHNL,c_i,c_j]}+{state[quoridorvars.WHITE_V_WALL_CHNL,c_i,c_j]} {c_i,c_j}"
         hwalls[coordindex] = state[quoridorvars.BLACK_H_WALL_CHNL,c_i,c_j] + state[quoridorvars.WHITE_H_WALL_CHNL,c_i,c_j]
+        #assert hwalls[coordindex] < 2, f"horizontal walls place on eachother? {state[quoridorvars.BLACK_H_WALL_CHNL,c_i,c_j]} {state[quoridorvars.WHITE_H_WALL_CHNL,c_i,c_j]} {c_i,c_j}"
     
     return vwalls, hwalls
 
@@ -243,10 +270,23 @@ class QuoridorGame():
   @staticmethod
   def invalid_wall_placement(state,i,j,d):
 
+
+    #No walls on current location
+    for chof in range(4):
+
+      if state[quoridorvars.BLACK_V_WALL_CHNL+chof,i,j] == 1:
+        return 1
+
     #returns 0  or 1 to mark whether a wall location is invalid
     vwalls, hwalls = QuoridorGame.walls_around_walls(state,i,j)
 
     for index in range(len(vwalls)):
+
+      if vwalls[index] == 1 and hwalls[index] == 1:
+        return 1
+      if vwalls[index] == 2 or hwalls[index] == 2:
+        return 1
+
       if vwalls[index] == 1: #if wall is vertical
         if d == 1: #Vertical
           if index == 0 or index == 1: #if wall is up or down
@@ -485,6 +525,8 @@ class QuoridorGame():
     state = QuoridorGame.set_valid_moves(state,1)
     state = QuoridorGame.set_invalid_placement(state,0)
     state = QuoridorGame.set_invalid_placement(state,1)
+    #print(state[quoridorvars.INVALID_V_WALL_CHNL])
+    #print(state[quoridorvars.INVALID_H_WALL_CHNL])
     state = QuoridorGame.set_path(state,0)
     state = QuoridorGame.set_path(state,1)
     state = QuoridorGame.set_gameover(state)
@@ -543,7 +585,7 @@ class QuoridorGame():
     """For Layers 5 and 6 """
 
     state = state.copy()
-    state[quoridorvars.BLACK_V_WALL_CHNL+(player*2)+walldir-1,i,j] = 1
+    state[quoridorvars.BLACK_V_WALL_CHNL+(player*2)+walldir,i,j] = 1
     return state
 
   @staticmethod
@@ -552,11 +594,11 @@ class QuoridorGame():
     """For Layers 7 and 8 """
 
     state = state.copy()
-    state[quoridorvars.INVALID_V_WALL_CHNL-1+walldir,:,:] = 0
+    state[quoridorvars.INVALID_V_WALL_CHNL+walldir,:,:] = 0
     m, n = state_utils.get_board_size(state)
     for i in range(m):
       for j in range(n):
-        state[quoridorvars.INVALID_V_WALL_CHNL-1+walldir,i,j] = QuoridorGame.invalid_wall_placement(state,i,j,walldir)
+        state[quoridorvars.INVALID_V_WALL_CHNL+walldir,i,j] = QuoridorGame.invalid_wall_placement(state,i,j,walldir)
     return state
 
   @staticmethod

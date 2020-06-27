@@ -56,11 +56,28 @@ def draw_grid(grid_x,grid_y,grid_w,grid_h,state,gridoffset):
         for x_index in range(cells_w):
             draw_rectangle(startx + (cellw * x_index),starty + (cellh * y_index), cellw,cellh,colorf=COLOR_BOARD_CELL)        
 
-def draw_h_walls(grid_x,grid_y,grid_w,grid_h,state,gridoffset,colorf=(0,0,0),batch=None):
-    pass
+def draw_walls(grid_x,grid_y,grid_w,grid_h,state,gridoffset):
+    _, cells_w, cells_h = state.shape
+    cellw = (grid_w-(gridoffset))//cells_w
+    cellh = (grid_h-(gridoffset))//cells_h
+    startx = grid_x-(grid_w//2)+gridoffset+cellw//2
+    starty = grid_y-(grid_h//2)+gridoffset+cellh//2
 
-def draw_v_walls(grid_x,grid_y,grid_w,grid_h,state,gridoffset,colorf=(0,0,0),batch=None):
-    pass
+    wall_colors = [(0.3,0.0,0.3),(0.3,0.3,0.0),(0.0,0.3,0.3),(0.0,0.3,0.0)]
+
+    for chnloff in range(4):
+        chnl = quoridorvars.BLACK_V_WALL_CHNL + chnloff
+        for x in range(cells_w):
+            for y in range(cells_h):
+                if state[chnl,x,y] == 1:
+                    if chnloff == 0 or chnloff == 2:
+                        draw_rectangle(startx + (cellw * x),starty + (cellh * y),cellw*0.2,cellh*2,colorf=wall_colors[chnloff])
+                    else:
+                        draw_rectangle(startx + (cellw * x),starty + (cellh * y),cellw*2,cellh*0.2,colorf=wall_colors[chnloff])
+
+
+
+
 
 def draw_players(grid_x,grid_y,grid_w,grid_h,state,gridoffset):
     _, cells_w, cells_h = state.shape
@@ -121,13 +138,27 @@ def draw_path(grid_x,grid_y,grid_w,grid_h,state,gridoffset):
                 draw_circle(startx + (cellw * x)+(cellw*0.35),starty + (cellh * y)+(cellh*0.35), cells_w//2,COLOR_WHITE_PIECE)
 
 
+def draw_action_state(grid_x,grid_y,grid_w,grid_h,state,gridoffset,actionstate):
+    _, cells_w, cells_h = state.shape
+    startx = grid_x-(grid_w//2)+gridoffset 
+    starty = grid_y-(grid_h//2)+gridoffset
+    cellw = (grid_w-(gridoffset))//cells_w
+    cellh = (grid_h-(gridoffset))//cells_h
+
+    #assert type(actionstate) == str
+
+    label = pyglet.text.Label(actionstate,
+                          font_name='Times New Roman',
+                          font_size=18,
+                          x=grid_w+100, y=grid_h-100,
+                          anchor_x='center', anchor_y='center')
+    label.draw()
 
 
 
-def draw_title(batch, window_width, window_height):
-    pyglet.text.Label("Quoridor", font_name='Helvetica', font_size=20, bold=True, x=window_width / 2, y=window_height - 20,
-                      anchor_x='center', anchor_y='top', color=(0, 0, 0, 255), batch=batch, width=window_width / 2,
-                      align='center')
+
+
+
 
 
 def draw_grid2(batch, delta, board_size, lower_grid_coord, upper_grid_coord):

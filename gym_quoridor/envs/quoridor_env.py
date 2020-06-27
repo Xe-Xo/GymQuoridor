@@ -44,13 +44,11 @@ class QuoridorEnv(gym.Env):
     '''
 
     assert not self.done
-
-    self.last_state = np.copy(self.state)
+    self.last_state = self.state
     self.last_action = action
     self.state = QuoridorGame.get_next_state(self.state, action)
     self.done = QuoridorGame.get_game_ended(self.state)
-    return np.copy(self.state), self.get_reward(self.state,self.last_state), self.done, self.get_info()
-
+    return self.state, self.get_reward(self.state,self.last_state), self.done, self.get_info()
 
   def game_ended(self):
     return self.done
@@ -105,7 +103,7 @@ class QuoridorEnv(gym.Env):
     return {}
 
   def __str__(self):
-    string = QuoridorGame.__str__(self.state)+"\n Reward:"+str(self.get_reward(self.state,self.last_state))+"\nActionNum:"+str(self.last_action)
+    string = QuoridorGame.__str__(self.state)+"\n"+QuoridorGame.__str__(self.last_state)+"\n Reward:"+str(self.get_reward(self.state,self.last_state))+"\nActionNum:"+str(self.last_action)
     try:
       string += "\nValidMove:"+str(QuoridorGame.valid_move(self.last_state,self.last_action))
     except:
@@ -120,11 +118,11 @@ class QuoridorEnv(gym.Env):
 
     return string
 
-  def close(self):
-    if hasattr(self, 'window'):
-      assert hasattr(self, 'pyglet')
-      self.window.close()
-      self.pyglet.app.exit() 
+  #def close(self):
+  #  if hasattr(self, 'window'):
+  #    assert hasattr(self, 'pyglet')
+  #    self.window.close()
+  #    self.pyglet.app.exit() 
 
   def render(self, mode='terminal'):
     if mode == 'terminal':
@@ -134,81 +132,141 @@ class QuoridorEnv(gym.Env):
       window_width = 800
       window_height = 600
 
-      if self.window is None:
-        import pyglet
-        from pyglet.window import mouse
-        from pyglet.window import key
+      import pyglet
+      from pyglet.window import mouse
+      from pyglet.window import key
 
-        screen = pyglet.canvas.get_display().get_default_screen()
+      screen = pyglet.canvas.get_display().get_default_screen()
 
-        window = pyglet.window.Window(window_width, window_height)
-        self.window = window
-        self.pyglet = pyglet
+      window = pyglet.window.Window(window_width, window_height)
+      self.window = window
+      self.pyglet = pyglet
+
+      self.action_state = "MOVE"
       
-        # Set Cursor
-        
-      window = self.window
-      pyglet = self.pyglet
+        # Set Cursor      
       cursor = self.window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
       self.window.set_mouse_cursor(cursor)
 
       self.user_action = None
-
- 
-
-      # Outlines
       
-      lower_grid_coord = window_width * 0.075
-      board_size = window_width * 0.85
-      upper_grid_coord = board_size + lower_grid_coord
-      delta = board_size / (self.size)
-      piece_r = delta / 3.3  # radius
-
+      
       @window.event
       def on_draw():
-          pyglet.gl.glClearColor(0.7, 0.5, 0.3, 1)
-          window.clear()
+        pyglet.gl.glClearColor(0.7, 0.5, 0.3, 1)
+        window.clear()
 
-          pyglet.gl.glLineWidth(3)
-          batch = pyglet.graphics.Batch()
+        pyglet.gl.glLineWidth(3)
+        batch = pyglet.graphics.Batch()
+        rendering.draw_grid(window_height/2, window_height/2, window_height, window_height, self.state,50)
+        rendering.draw_players(window_height/2, window_height/2, window_height, window_height, self.state, 50)
+        rendering.draw_potential_move(window_height/2, window_height/2, window_height, window_height, self.state, 50)
+        rendering.draw_path(window_height/2, window_height/2, window_height, window_height, self.state, 50)
+        rendering.draw_action_state(window_height/2, window_height/2, window_height, window_height, self.state, 50,self.action_state)
+        rendering.draw_walls(window_height/2, window_height/2, window_height, window_height, self.state, 50)
+        batch.draw()
 
-          #rendering.draw_rectangle(window_height//2,window_height//2,window_height,window_height,(0.5,0.5,0.5),batch=batch)
-          rendering.draw_grid(window_height/2, window_height/2, window_height, window_height, self.state,50)
-#          rendering.draw_v_walls(window_height/2, window_height/2, window_height, window_height, self.state, 50, batch=batch)
-#          rendering.draw_h_walls(window_height/2, window_height/2, window_height, window_height, self.state, 50, batch=batch)
-          rendering.draw_players(window_height/2, window_height/2, window_height, window_height, self.state, 50)
-#          rendering.draw_potential_v_walls(window_height/2, window_height/2, window_height, window_height, self.state, 50, batch=batch)
-#          rendering.draw_potential_h_walls(window_height/2, window_height/2, window_height, window_height, self.state, 50, batch=batch)
-          rendering.draw_potential_move(window_height/2, window_height/2, window_height, window_height, self.state, 50)
-          rendering.draw_path(window_height/2, window_height/2, window_height, window_height, self.state, 50)
-          batch.draw()
+      @window.event
+      def on_mouse_motion(x, y, dx, dy):
+        #this is for debugging
+        insidegrid = x >= 50 and x <= window_height-100 and y >= 50 and y <= window_height-100
+        print(f"InsideGrid?{insidegrid}")
+        if insidegrid:
+          if self.action_state == "MOVE":
+            #playermovement
+            deltaw = (window_height-50)//self.size
+            deltah = (window_height-50)//self.size
+            grid_x = x - 50
+            grid_y = y - 50
+            x_coord = round(grid_x / deltaw)
+            y_coord = round(grid_y / deltah)
+            player = QuoridorGame.get_player_turn(self.state)
+            dx_coord,dy_coord = QuoridorGame.movement_offset(self.state,x_coord,y_coord,player)
+            print(f"PlayerMovement{dx_coord,dy_coord},{x_coord,y_coord},{QuoridorGame.movement_to_action(self.state,dx_coord,dy_coord)},{QuoridorGame.valid_move(self.state,QuoridorGame.movement_to_action(self.state,dx_coord,dy_coord))}")
+          #wallplacement
+          elif self.action_state == "PLACE_V" or self.action_state == "PLACE_H":
+            deltaw = (window_height-50)//self.size
+            deltah = (window_height-50)//self.size
+            grid_x = x - 50-deltaw//2
+            grid_y = y - 50-deltah//2
+            x_coord = round(grid_x / deltaw)
+            y_coord = round(grid_y / deltah)           
+            if self.action_state == "PLACE_V":
+              print(f"VWallPlacement{x_coord,y_coord,0},{QuoridorGame.placement_to_action(self.state,x_coord,y_coord,0)},{QuoridorGame.valid_placement(self.state,QuoridorGame.placement_to_action(self.state,x_coord,y_coord,0))}")
+            else:
+              print(f"HWallPlacement{x_coord,y_coord,1},{QuoridorGame.placement_to_action(self.state,x_coord,y_coord,1)},{QuoridorGame.valid_placement(self.state,QuoridorGame.placement_to_action(self.state,x_coord,y_coord,1))}")
+          else:
+            pass
 
-          # draw the pieces
-          #rendering.draw_pieces(batch, lower_grid_coord, delta, piece_r, self.size, self.state)
 
       @window.event
       def on_mouse_press(x, y, button, modifiers):
-          if button == mouse.LEFT:
-              grid_x = (x - lower_grid_coord)
-              grid_y = (y - lower_grid_coord)
-              x_coord = round(grid_x / delta)
-              y_coord = round(grid_y / delta)
+        if button == mouse.LEFT:
+          if x >= 50 and x <= window_height-100 and y >= 50 and y <= window_height-100:
+            if self.action_state == "MOVE":
+              deltaw = (window_height-50)//self.size
+              deltah = (window_height-50)//self.size
+              grid_x = x - 50
+              grid_y = y - 50
+              x_coord = round(grid_x / deltaw)
+              y_coord = round(grid_y / deltah)
+              player = QuoridorGame.get_player_turn(self.state)
+              x_coord,y_coord = QuoridorGame.movement_offset(self.state,x_coord,y_coord,player)
+              self.user_action = x_coord,y_coord
+              self.user_action = QuoridorGame.movement_to_action(self.state,x_coord,y_coord)
               try:
-                self.user_action = (x_coord, y_coord)
+                self.window.close()
+                pyglet.app.exit()
               except:
                 pass
+            elif self.action_state == "PLACE_V":
+              deltaw = (window_height-50)//self.size
+              deltah = (window_height-50)//self.size
+              grid_x = x - 50-deltaw//2
+              grid_y = y - 50-deltah//2
+              x_coord = round(grid_x / deltaw)
+              y_coord = round(grid_y / deltah)           
+              player = QuoridorGame.get_player_turn(self.state)
+              self.user_action = x_coord,y_coord
+              self.user_action = QuoridorGame.placement_to_action(self.state,x_coord,y_coord,0)
+              try:
+                self.window.close()
+                pyglet.app.exit()
+              except:
+                pass
+            elif self.action_state == "PLACE_H":
+              deltaw = (window_height-50)//self.size
+              deltah = (window_height-50)//self.size
+              grid_x = x - 50-deltaw//2
+              grid_y = y - 50-deltah//2
+              x_coord = round(grid_x / deltaw)
+              y_coord = round(grid_y / deltah)           
+              player = QuoridorGame.get_player_turn(self.state)
+              self.user_action = x_coord,y_coord
+              self.user_action = QuoridorGame.placement_to_action(self.state,x_coord,y_coord,1)
+              try:
+                self.window.close()
+                pyglet.app.exit()
+              except:
+                pass
+            
+
+              pass
 
       @window.event
+      def on_mouse_scroll(x,y,scroll_x,scroll_y):
+        if self.action_state == "MOVE":
+          self.action_state = "PLACE_V"
+        elif self.action_state == "PLACE_V":
+          self.action_state = "PLACE_H"
+        elif self.action_state == "PLACE_H":
+          self.action_state = "DEBUG"
+        else:
+          self.action_state = "MOVE"
+                
+      @window.event
       def on_key_press(symbol, modifiers):
-        if symbol == key.P:
-          self.window.close()
-          pyglet.app.exit()
-          self.user_action = None
-        elif symbol == key.R:
-          self.reset()
-          self.window.close()
-          pyglet.app.exit()
-        elif symbol == key.E:
+        if symbol == key.ESCAPE:
           self.window.close()
           pyglet.app.exit()
           self.user_action = -1
@@ -219,8 +277,9 @@ class QuoridorEnv(gym.Env):
         pyglet.app.exit()
         self.user_action = -1
 
-
-
       pyglet.app.run()
-
       return self.user_action
+      
+      
+    else:
+      pass
