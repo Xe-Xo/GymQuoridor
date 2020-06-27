@@ -126,3 +126,4 @@ dmypy.json
 
 #hide test bat
 *.bat
+.vscode/*

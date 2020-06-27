@@ -7,7 +7,7 @@ from gym_quoridor import enums, quoridorvars, rendering
 from gym_quoridor.quoridorgame import QuoridorGame
 
 class QuoridorEnv(gym.Env):
-  metadata = {'render.modes': ['terminal'] }
+  metadata = {'render.modes': ['terminal','human'] }
   quoridorgame = QuoridorGame()
 
   def __init__(self,size=9,reward_method='invalid'):
@@ -91,7 +91,7 @@ class QuoridorEnv(gym.Env):
 
     #Diagnostic information useful for debugging
     #official evaluations of agent should not be using this for learning
-    #TO DO
+    #---TO DO----
     # white path - As a list
     # black path - As a list
     # heuristic reward

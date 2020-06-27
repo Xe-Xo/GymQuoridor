@@ -15,6 +15,7 @@ while not done:
   if action == -1:
     exit()
   elif type(action) == tuple:
+    
     print(action)
   elif action is None:
     pass
