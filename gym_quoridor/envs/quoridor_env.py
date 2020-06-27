@@ -150,7 +150,9 @@ class QuoridorEnv(gym.Env):
 
       self.user_action = None
       
-      
+      self.offset = 50
+
+
       @window.event
       def on_draw():
         pyglet.gl.glClearColor(0.7, 0.5, 0.3, 1)
@@ -158,21 +160,21 @@ class QuoridorEnv(gym.Env):
 
         pyglet.gl.glLineWidth(3)
         batch = pyglet.graphics.Batch()
-        rendering.draw_grid(window_height/2, window_height/2, window_height, window_height, self.state,50)
-        rendering.draw_players(window_height/2, window_height/2, window_height, window_height, self.state, 50)
-        rendering.draw_potential_move(window_height/2, window_height/2, window_height, window_height, self.state, 50)
-        rendering.draw_path(window_height/2, window_height/2, window_height, window_height, self.state, 50)
-        rendering.draw_action_state(window_height/2, window_height/2, window_height, window_height, self.state, 50,self.action_state)
-        rendering.draw_walls(window_height/2, window_height/2, window_height, window_height, self.state, 50)
+        rendering.draw_grid(window_height/2, window_height/2, window_height, window_height, self.state,self.offset )
+        rendering.draw_players(window_height/2, window_height/2, window_height, window_height, self.state, self.offset )
+        rendering.draw_potential_move(window_height/2, window_height/2, window_height, window_height, self.state, self.offset )
+        rendering.draw_path(window_height/2, window_height/2, window_height, window_height, self.state, self.offset)
+        rendering.draw_action_state(window_height/2, window_height/2, window_height, window_height, self.state, self.offset ,self.action_state)
+        rendering.draw_walls(window_height/2, window_height/2, window_height, window_height, self.state, self.offset)
         if self.action_state == "DEBUG":
-          rendering.draw_invalid_walls(window_height/2, window_height/2, window_height, window_height, self.state, 50)
+          rendering.draw_invalid_walls(window_height/2, window_height/2, window_height, window_height, self.state, self.offset)
         batch.draw()
 
       @window.event
       def on_mouse_motion(x, y, dx, dy):
         #this is for debugging
-        insidegrid = x >= 50 and x <= window_height-100 and y >= 50 and y <= window_height-100
-        print(f"InsideGrid?{insidegrid}")
+        insidegrid = x >= 20 and x <= 571 and y >= 20 and y <= 571
+        print(f"InsideGrid?{insidegrid},{x},{y}")
         if insidegrid:
           if self.action_state == "MOVE":
             #playermovement
@@ -200,11 +202,10 @@ class QuoridorEnv(gym.Env):
           else:
             pass
 
-
       @window.event
       def on_mouse_press(x, y, button, modifiers):
         if button == mouse.LEFT:
-          if x >= 50 and x <= window_height-100 and y >= 50 and y <= window_height-100:
+          if x >= 25 and x <= window_height-50 and y >= 25 and y <= window_height-50:
             if self.action_state == "MOVE":
               deltaw = (window_height-50)//self.size
               deltah = (window_height-50)//self.size
@@ -224,8 +225,8 @@ class QuoridorEnv(gym.Env):
             elif self.action_state == "PLACE_V":
               deltaw = (window_height-50)//self.size
               deltah = (window_height-50)//self.size
-              grid_x = x - 50-deltaw//2
-              grid_y = y - 50-deltah//2
+              grid_x = x - 25-deltaw//2
+              grid_y = y - 25-deltah//2
               x_coord = round(grid_x / deltaw)
               y_coord = round(grid_y / deltah)           
               player = QuoridorGame.get_player_turn(self.state)
@@ -282,6 +283,50 @@ class QuoridorEnv(gym.Env):
       pyglet.app.run()
       return self.user_action
       
+    elif mode == 'rgbarray':
+
+      window_width = 600
+      window_height = 600
+
+      import pyglet
+      from pyglet.window import mouse
+      from pyglet.window import key
+
+      screen = pyglet.canvas.get_display().get_default_screen()
+
+      window = pyglet.window.Window(window_width, window_height)
+      self.window = window
+      self.pyglet = pyglet
+  
+        # Set Cursor      
+      cursor = self.window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
+      self.window.set_mouse_cursor(cursor)
+
+      self.user_action = None
       
+      self.offset = 50
+
+      @window.event
+      def on_draw():
+        pyglet.gl.glClearColor(0.7, 0.5, 0.3, 1)
+        window.clear()
+        pyglet.gl.glLineWidth(3)
+        batch = pyglet.graphics.Batch()
+        rendering.draw_grid(window_height/2, window_height/2, window_height, window_height, self.state,self.offset )
+        rendering.draw_players(window_height/2, window_height/2, window_height, window_height, self.state, self.offset )
+        rendering.draw_potential_move(window_height/2, window_height/2, window_height, window_height, self.state, self.offset )
+        rendering.draw_path(window_height/2, window_height/2, window_height, window_height, self.state, self.offset)
+        rendering.draw_action_state(window_height/2, window_height/2, window_height, window_height, self.state, self.offset ,self.action_state)
+        rendering.draw_walls(window_height/2, window_height/2, window_height, window_height, self.state, self.offset)
+        batch.draw()
+
+      buffer = pyglet.image.get_buffer_manager().get_color_buffer()
+      image_data = buffer.get_image_data()
+      arr = np.frombuffer(image_data.get_data(), dtype=np.uint8)
+      arr = arr.reshape(buffer.height, buffer.width, 4)
+      arr = arr[::-1,:,0:3]
+
+      return arr
+
     else:
       pass

@@ -14,16 +14,23 @@ statelist = []
 done = False
 tau = 0
 while not done:
+    print(f"-----{tau}------")
 
-    state, reward, done, info = quoridor_env.step(12)
-    statelist.append(state)
-    quoridor_env.render(mode="terminal")
+    action = quoridor_env.render(mode="terminal")
+    if action is None or action == -1:
+        state, reward, done, info = quoridor_env.step(quoridor_env.action_space.sample())
+    else:
+        print(action)
+        state, reward, done, info = quoridor_env.step(action)
+    
+    #statelist.append(state)
+    
     tau += 1
-    if tau == 1:
+    if tau == 100:
         break
 
-stateint = int(input("View which state?"))
-for i in range(gym_quoridor.quoridorvars.NUM_CHNLS):
-    print(statelist[stateint][i,:,:])
+quoridor_env.render(mode="human")
+image_array = quoridor_env.render(mode="rgbarray")
+
 
   

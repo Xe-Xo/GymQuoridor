@@ -206,9 +206,13 @@ class QuoridorGame():
 
   @staticmethod
   def placement_to_action(state,x,y,walldir):
-    m,n = state_utils.get_wall_size(state)
-    wallspace = m * n
-    return (walldir*wallspace)+(y * m + x) + 12
+    try:
+      m,n = state_utils.get_wall_size(state)
+      wallspace = m * n
+      assert x >= 0 and x < m and y >= 0 and y < n
+      return (walldir*wallspace)+(y * m + x) + 12
+    except AssertionError:
+      return None
 
   @staticmethod
   def movement_to_action(state,x,y):

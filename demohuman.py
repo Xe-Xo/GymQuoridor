@@ -11,7 +11,7 @@ done = False
 while not done:
   #break #to stop infinite loop until human setup
   action = quoridor_env.render(mode="human")
-  print(f"RETURNED ACTION! {action}")
+  #print(f"RETURNED ACTION! {action}")
   if action == -1:
     exit()
   elif type(action) == tuple:
